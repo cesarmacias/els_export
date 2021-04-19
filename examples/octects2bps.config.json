@@ -1,0 +1,31 @@
+{
+  "elastic": {
+    "nodes": ["http://es02:9200", "http://es01:9200"],
+    "username": "elastic",
+    "password": "elastic",
+    "maxRetries": 3,
+    "requestTimeout": 90000
+  },
+  "query": {
+    "index": "tseries-*",
+    "vars": {
+      "_from": 1000,
+      "_to": 2000
+    },
+    "file": "dsl-downstream.json",
+    "aggs": "group_by",
+    "exclude": "time",
+    "time": {
+      "interval": 60,
+      "delay": 5
+    }
+  },
+  "export": {
+    "addTime": true,
+    "format": "ndjson",
+    "schema": ["val1","val2","val3"],
+    "attr": {
+      "measurement_name": "snmpif_bps"
+    }
+  }
+}

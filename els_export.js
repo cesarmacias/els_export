@@ -4,7 +4,11 @@
 const { Client } = require("es7");
 const fs = require("fs");
 const argv = require("minimist")(process.argv.slice(2));
-
+/*
+    FUNCTION GET VALUE FROM OBJECT USING DOT STRING FROMAT
+*/
+const getValue = (object, keys) =>
+  keys.split(".").reduce((o, k) => (o || {})[k], object);
 /*
     FUNCTION OBJECT TO EXPAND DOT ANNOTATION TO MULTI-LEVEL OBJECT
  */
@@ -59,59 +63,78 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
     let flag = true;
     while (flag) {
       const { body } = await esClient.search(search);
-      if (
-        "aggregations" in body &&
-        isObject(body.aggregations) &&
-        config.aggs in body.aggregations
-      ) {
-        let obj = body.aggregations[config.aggs];
-        let array = "buckets" in obj ? obj.buckets : [];
-        let after = "after_key" in obj ? obj.after_key : false;
-        if (isObject(after)) {
-          search.body["aggs"][config.query.aggs].composite.after = after;
-        } else {
-          flag = false;
-        }
-        for await (const item of array) {
-          if (isObject(item)) {
-            let resp = {};
-            for (let key in item) {
-              if (key === "key" && isObject(item.key)) {
-                for (let field in item.key) {
-                  resp[field] = item.key[field];
+      if (config.query.type === "composite") {
+        if (
+          "aggregations" in body &&
+          isObject(body.aggregations) &&
+          config.query.aggs in body.aggregations
+        ) {
+          let obj = body.aggregations[config.query.aggs];
+          let array = "buckets" in obj ? obj.buckets : [];
+          let after = "after_key" in obj ? obj.after_key : false;
+          if (isObject(after)) {
+            search.body["aggs"][config.query.aggs].composite.after = after;
+          } else {
+            flag = false;
+          }
+          for await (const item of array) {
+            if (isObject(item)) {
+              let resp = {};
+              for (let key in item) {
+                if (key === "key" && isObject(item.key)) {
+                  for (let field in item.key) {
+                    resp[field] = item.key[field];
+                  }
+                } else if (key === "doc_count") {
+                  resp.count = item[key];
+                } else if (key === config.query.exclude) {
+                  continue;
+                } else if ("value" in item[key]) {
+                  resp[key] =
+                    item[key].value != null ? item[key].value : undefined;
+                } else if ("buckets" in item[key]) {
+                  if (item[key]["buckets"][0]["doc_count"])
+                    resp[key] = item[key]["buckets"][0]["doc_count"];
+                } else if ("values" in item[key]) {
+                  resp[key] = item[key].values;
+                } else if ("doc_count" in item[key]) {
+                  resp[key] = item[key]["doc_count"];
+                } else {
+                  resp[key] = item[key];
                 }
-              } else if (key === "doc_count") {
-                resp.count = item[key];
-              } else if (key === config.query.exclude) {
-                continue;
-              } else if ("value" in item[key]) {
-                resp[key] =
-                  item[key].value != null ? item[key].value : undefined;
-              } else if ("buckets" in item[key]) {
-                if (item[key]["buckets"][0]["doc_count"])
-                  resp[key] = item[key]["buckets"][0]["doc_count"];
-              } else if ("values" in item[key]) {
-                resp[key] = item[key].values;
-              } else if ("doc_count" in item[key]) {
-                resp[key] = item[key]["doc_count"];
+              }
+              if (
+                "addTime" in config.export &&
+                config.export.addTime &&
+                timeFrom > 0
+              ) {
+                resp.time = timeFrom;
+              }
+              let data =
+                config.export.attr && Object.keys(config.export.attr).length > 0
+                  ? { ...Object.expand(resp), ...config.export.attr }
+                  : Object.expand(resp);
+              if (
+                "format" in config.export &&
+                config.export.format == "csv" &&
+                "schema" in config.export &&
+                config.export.schema.length > 0
+              ) {
+                let csv;
+                config.export.schema.forEach(key, (i) => {
+                  csv =
+                    i == 0
+                      ? getValue(data, key)
+                      : csv + "," + getValue(data, key);
+                });
               } else {
-                resp[key] = item[key];
+                console.log(JSON.stringify(data));
               }
             }
-            if (
-              "addTime" in config.export &&
-              config.export.addTime &&
-              timeFrom > 0
-            ) {
-              resp.time = timeFrom;
-            }
-            let data =
-              config.export.attr && Object.keys(config.export.attr).length > 0
-                ? { ...Object.expand(resp), ...config.export.attr }
-                : Object.expand(resp);
-            console.log(JSON.stringify(data));
           }
         }
+      } else {
+        
       }
     }
   } catch (e) {

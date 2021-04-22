@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "es7": "^1.0.8-beta.4",
+    "fs": "0.0.1-security",
+    "minimist": "^1.2.5"
+  }
+}

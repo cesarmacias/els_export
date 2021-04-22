@@ -351,3 +351,6 @@ MigrationBackup/
 
 #Gitconfig
 .gitconfig
+
+#npm
+package-lock.json

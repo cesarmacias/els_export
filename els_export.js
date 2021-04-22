@@ -63,6 +63,7 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
     let flag = true;
     while (flag) {
       const { body } = await esClient.search(search);
+      let array = [];
       if (config.query.type === "composite") {
         if (
           "aggregations" in body &&
@@ -70,71 +71,89 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
           config.query.aggs in body.aggregations
         ) {
           let obj = body.aggregations[config.query.aggs];
-          let array = "buckets" in obj ? obj.buckets : [];
+          array = "buckets" in obj ? obj.buckets : [];
           let after = "after_key" in obj ? obj.after_key : false;
           if (isObject(after)) {
             search.body["aggs"][config.query.aggs].composite.after = after;
           } else {
             flag = false;
           }
-          for await (const item of array) {
-            if (isObject(item)) {
-              let resp = {};
-              for (let key in item) {
-                if (key === "key" && isObject(item.key)) {
-                  for (let field in item.key) {
-                    resp[field] = item.key[field];
-                  }
-                } else if (key === "doc_count") {
-                  resp.count = item[key];
-                } else if (key === config.query.exclude) {
-                  continue;
-                } else if ("value" in item[key]) {
-                  resp[key] =
-                    item[key].value != null ? item[key].value : undefined;
-                } else if ("buckets" in item[key]) {
-                  if (item[key]["buckets"][0]["doc_count"])
-                    resp[key] = item[key]["buckets"][0]["doc_count"];
-                } else if ("values" in item[key]) {
-                  resp[key] = item[key].values;
-                } else if ("doc_count" in item[key]) {
-                  resp[key] = item[key]["doc_count"];
-                } else {
-                  resp[key] = item[key];
+        } else {
+          flag = false;
+        }
+      } else if (config.query.type === "search") {
+        if (
+          "hits" in body &&
+          "hits" in body.hits &&
+          body.hits.hits.length > 0
+        ) {
+          array = body.hits.hits;
+          let last = array[array.length - 1];
+          if ("sort" in last && isArray(last.sort)) {
+            search.body.search_after = last.sort;
+          } else {
+            flag = false;
+          }
+        } else {
+          flag = false;
+        }
+      }
+      for await (const item of array) {
+        if (isObject(item)) {
+          let resp = {};
+          if ("_source" in item && "_index" && item) {
+            resp = item[_source];
+          } else {
+            for (let key in item) {
+              if (key === "key" && isObject(item.key)) {
+                for (let field in item.key) {
+                  resp[field] = item.key[field];
                 }
-              }
-              if (
-                "addTime" in config.export &&
-                config.export.addTime &&
-                timeFrom > 0
-              ) {
-                resp.time = timeFrom;
-              }
-              let data =
-                config.export.attr && Object.keys(config.export.attr).length > 0
-                  ? { ...Object.expand(resp), ...config.export.attr }
-                  : Object.expand(resp);
-              if (
-                "format" in config.export &&
-                config.export.format == "csv" &&
-                "schema" in config.export &&
-                config.export.schema.length > 0
-              ) {
-                let csv;
-                config.export.schema.forEach(key, (i) => {
-                  csv =
-                    i == 0
-                      ? getValue(data, key)
-                      : csv + "," + getValue(data, key);
-                });
+              } else if (key === "doc_count") {
+                resp.count = item[key];
+              } else if (key === config.query.exclude) {
+                continue;
+              } else if ("value" in item[key]) {
+                resp[key] =
+                  item[key].value != null ? item[key].value : undefined;
+              } else if ("buckets" in item[key]) {
+                if (item[key]["buckets"][0]["doc_count"])
+                  resp[key] = item[key]["buckets"][0]["doc_count"];
+              } else if ("values" in item[key]) {
+                resp[key] = item[key].values;
+              } else if ("doc_count" in item[key]) {
+                resp[key] = item[key]["doc_count"];
               } else {
-                console.log(JSON.stringify(data));
+                resp[key] = item[key];
               }
             }
           }
+          if (
+            "addTime" in config.export &&
+            config.export.addTime &&
+            timeFrom > 0
+          ) {
+            resp.time = timeFrom;
+          }
+          let data =
+            config.export.attr && Object.keys(config.export.attr).length > 0
+              ? { ...Object.expand(resp), ...config.export.attr }
+              : Object.expand(resp);
+          if (
+            "format" in config.export &&
+            config.export.format == "csv" &&
+            "schema" in config.export &&
+            config.export.schema.length > 0
+          ) {
+            let csv;
+            config.export.schema.forEach(key, (i) => {
+              csv =
+                i == 0 ? getValue(data, key) : csv + "," + getValue(data, key);
+            });
+          } else {
+            console.log(JSON.stringify(data));
+          }
         }
-      } else {
-        
       }
     }
   } catch (e) {

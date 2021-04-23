@@ -89,7 +89,7 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
         ) {
           array = body.hits.hits;
           let last = array[array.length - 1];
-          if ("sort" in last && isArray(last.sort)) {
+          if ("sort" in last && Array.isArray(last.sort)) {
             search.body.search_after = last.sort;
           } else {
             flag = false;

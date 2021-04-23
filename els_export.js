@@ -50,7 +50,7 @@ const isObject = function (a) {
 async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
   try {
     let dsl = strDsl;
-    if (isSObject(objReplace)) {
+    if (isObject(objReplace)) {
       for (const key in objReplace) {
         dsl = dsl.replace('"%{' + key + '}"', objReplace[key]);
       }

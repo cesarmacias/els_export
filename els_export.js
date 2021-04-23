@@ -12,7 +12,7 @@ function dotObject(obj, is, value) {
   else if (is.length == 1 && value !== undefined) return (obj[is[0]] = value);
   else if (is.length == 0) return obj;
   else if (is[0] in obj) return dotObject(obj[is[0]], is.slice(1), value);
-  else return undefined;
+  else return '';
 }
 /*
     FUNCTION OBJECT TO EXPAND DOT ANNOTATION TO MULTI-LEVEL OBJECT
@@ -57,7 +57,7 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
     let dsl = strDsl;
     if (isObject(objReplace)) {
       for (const key in objReplace) {
-        dsl = dsl.replace('"%{' + key + '}"', objReplace[key]);
+        dsl = typeof key == "string" ? dsl.replace('%{' + key + '}', objReplace[key]) : dsl.replace('"%{' + key + '}"', objReplace[key]);
       }
     }
     const query = JSON.parse(dsl);

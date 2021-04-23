@@ -7,8 +7,12 @@ const argv = require("minimist")(process.argv.slice(2));
 /*
     FUNCTION GET VALUE FROM OBJECT USING DOT STRING FROMAT
 */
-const getValue = (object, keys) =>
-  keys.split(".").reduce((o, k) => (o || {})[k], object);
+function dotObject(obj, is, value) {
+  if (typeof is == "string") return index(obj, is.split("."), value);
+  else if (is.length == 1 && value !== undefined) return (obj[is[0]] = value);
+  else if (is.length == 0) return obj;
+  else return index(obj[is[0]], is.slice(1), value);
+}
 /*
     FUNCTION OBJECT TO EXPAND DOT ANNOTATION TO MULTI-LEVEL OBJECT
  */
@@ -102,7 +106,7 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
         if (isObject(item)) {
           let resp = {};
           if ("_source" in item && "_index" && item) {
-            resp = item[_source];
+            resp = item["_source"];
           } else {
             for (let key in item) {
               if (key === "key" && isObject(item.key)) {
@@ -146,10 +150,11 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
             config.export.schema.length > 0
           ) {
             let csv;
-            config.export.schema.forEach(key, (i) => {
+            config.export.schema.forEach((key, i) => {
               csv =
-                i == 0 ? getValue(data, key) : csv + "," + getValue(data, key);
+                i == 0 ? dotObject(data, key) : csv + "," + dotObject(data, key);
             });
+            console.log(csv);
           } else {
             console.log(JSON.stringify(data));
           }

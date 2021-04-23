@@ -186,7 +186,7 @@ async function main(confFile, opt_delay) {
       } else if ("delay" in config && config.delay > 0) {
         delay = config.delay * 60;
       }
-      if (fs.existsSync(config.queryfile)) {
+      if (fs.existsSync(config.query.file)) {
         let delay, timeTo, TimeRange;
         let timeFrom = 0;
         if ("time" in config.query && "interval" in config.query.time) {

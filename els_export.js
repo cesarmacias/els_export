@@ -190,15 +190,13 @@ async function main(confFile, opt_delay) {
         let delay, timeTo, TimeRange;
         let timeFrom = 0;
         if ("time" in config.query && "interval" in config.query.time) {
-          console.error(opt_delay);
           delay = opt_delay && opt_delay > 0 ? opt_delay * 60 : 0;
           delay =
             delay == 0 &&
             "delay" in config.query.time &&
             config.query.time.delay > 0
               ? config.query.time.delay * 60
-              : 0;
-          console.error(delay);
+              : delay;
           timeTo = Math.round(Date.now() / 1000 - delay);
           timeFrom = Math.round(timeTo - config.query.time.interval * 60);
           TimeRange = { _from: timeFrom, _to: timeTo };

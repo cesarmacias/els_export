@@ -218,7 +218,7 @@ async function main(confFile, opt_delay) {
             maxIte = config.query.time.toDays;
             let arrDate = config.query.time.dateFrom.split("-");
             timeFrom = new Date(+arrDate[0], +arrDate[1] - 1, +arrDate[2]).getTime() / 1000;
-          } else if ("interval" in config.query.time && config.query.time > 0) {
+          } else if ("interval" in config.query.time && config.query.time.interval > 0) {
             delay = opt_delay && opt_delay > 0 ? opt_delay * 60 : 0;
             delay =
               delay == 0 &&

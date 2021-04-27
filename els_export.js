@@ -12,7 +12,7 @@ function dotObject(obj, is, value) {
   else if (is.length == 1 && value !== undefined) return (obj[is[0]] = value);
   else if (is.length == 0) return obj;
   else if (is[0] in obj) return dotObject(obj[is[0]], is.slice(1), value);
-  else return '';
+  else return "";
 }
 /*
     FUNCTION OBJECT TO EXPAND DOT ANNOTATION TO MULTI-LEVEL OBJECT
@@ -57,7 +57,10 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
     let dsl = strDsl;
     if (isObject(objReplace)) {
       for (const key in objReplace) {
-        dsl = typeof key == "string" ? dsl.replace('%{' + key + '}', objReplace[key]) : dsl.replace('"%{' + key + '}"', objReplace[key]);
+        dsl =
+          typeof key == "string"
+            ? dsl.replace("%{" + key + "}", objReplace[key])
+            : dsl.replace('"%{' + key + '}"', objReplace[key]);
       }
     }
     const query = JSON.parse(dsl);
@@ -153,7 +156,9 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
             let csv;
             config.export.schema.forEach((key, i) => {
               csv =
-                i == 0 ? dotObject(data, key) : csv + "," + dotObject(data, key);
+                i == 0
+                  ? dotObject(data, key)
+                  : csv + "," + dotObject(data, key);
             });
             console.log(csv);
           } else {
@@ -187,26 +192,57 @@ async function main(confFile, opt_delay) {
         requestTimeout: config.elastic.requestTimeout,
       });
       if (fs.existsSync(config.query.file)) {
-        let delay, timeTo, TimeRange;
-        let timeFrom = 0;
-        if ("time" in config.query && "interval" in config.query.time) {
-          delay = opt_delay && opt_delay > 0 ? opt_delay * 60 : 0;
-          delay =
-            delay == 0 &&
-            "delay" in config.query.time &&
-            config.query.time.delay > 0
-              ? config.query.time.delay * 60
-              : delay;
-          timeTo = Math.round(Date.now() / 1000 - delay);
-          timeFrom = Math.round(timeTo - config.query.time.interval * 60);
+        const strDsl = fs.readFileSync(config.query.file, "utf8");
+        let delay, timeFrom;
+        let maxIte = 1;
+        let TimeRange = {};
+        let timeTo = 0;
+        if ("time" in config.query && isObject(config.query.time)) {
+          if ("lastDay" in config.query.time && config.query.time.lastDay) {
+            let dateFrom = ((d) => new Date(d.setDate(d.getDate() - 1)))(
+              new Date()
+            );
+            timeFrom =
+              new Date(
+                dateFrom.getFullYear(),
+                dateFrom.getMonth(),
+                dateFrom.getDate()
+              ).getTime() / 1000;
+            timeTo = timeFrom + 24 * 60 * 60;
+          } else if (
+            "dateFrom" in config.query.time &&
+            config.query.time.dateFrom.split("-").length == 3 &&
+            "toDays" in config.query.time &&
+            config.query.time.toDays > 0
+          ) {
+            maxIte = config.query.time.toDays;
+            let arrDate = config.query.time.dateFrom.split("-");
+            timeFrom = new Date(+arrDate[0], +arrDate[1] - 1, +arrDate[2]).getTime() / 1000;
+          } else if ("interval" in config.query.time && config.query.time > 0) {
+            delay = opt_delay && opt_delay > 0 ? opt_delay * 60 : 0;
+            delay =
+              delay == 0 &&
+              "delay" in config.query.time &&
+              config.query.time.delay > 0
+                ? config.query.time.delay * 60
+                : delay;
+            timeTo = Math.round(Date.now() / 1000 - delay);
+            timeFrom = Math.round(timeTo - config.query.time.interval * 60);
+          } else {
+            throw "Not correct config for timeRange";
+          }
           TimeRange = { _from: timeFrom, _to: timeTo };
         }
-        const strDsl = fs.readFileSync(config.query.file, "utf8");
-        const replace =
-          "vars" in config.query && isObject(config.query.vars)
-            ? { ...config.query.vars, ...TimeRange }
-            : TimeRange;
-        await DslQuery(config, replace, client, strDsl, timeFrom);
+        for (let i = 0; i < maxIte; i++) {
+          const replace =
+            "vars" in config.query && isObject(config.query.vars)
+              ? { ...config.query.vars, ...TimeRange }
+              : TimeRange;
+          await DslQuery(config, replace, client, strDsl, timeFrom);
+          timeFrom = timeTo;
+          timeTo = timeFrom + 24 * 60 * 60;
+          TimeRange = { _from: timeFrom, _to: timeTo };
+        }
       } else {
         throw "query DSL file not exists: " + config.query.file;
       }

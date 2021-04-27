@@ -18,7 +18,10 @@
     "type": "composite",
     "time": {
       "interval": 60,
-      "delay": 5
+      "delay": 5,
+      "lastDay": true,
+      "dateFrom": "2020-08-01",
+      "toDays": 45
     }
   },
   "export": {

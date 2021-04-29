@@ -6,6 +6,8 @@
     "index": "test_insert",
     "pipeline": "test",
     "bulkSize": 5000,
-    "conLimit": 100
+    "conLimit": 100,
+    "maxRetries": 3,
+    "requestTimeout": 90000
   }
 }

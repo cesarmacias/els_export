@@ -68,8 +68,6 @@ async function run(confFile) {
     }
   } catch (e) {
     console.error(e);
-  } finally {
-    process.exit(0);
   }
 }
 /*

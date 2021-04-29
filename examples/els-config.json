@@ -1,13 +1,13 @@
 {
+  "type": "elastic",
   "elastic": {
     "nodes": ["http://es02:9200", "http://es01:9200"],
     "username": "elastic",
     "password": "elastic",
     "index": "test_insert",
     "pipeline": "test",
-    "bulkSize": 5000,
-    "conLimit": 100,
-    "maxRetries": 3,
-    "requestTimeout": 90000
+    "bulkSize": 10000000,
+    "conLimit": 10,
+    "maxRetries": 3
   }
 }

@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "dateformat": "^4.5.1",
     "es7": "npm:@elastic/elasticsearch@^7.9.0",
     "fs": "0.0.1-security",
     "minimist": "^1.2.5",

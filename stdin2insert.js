@@ -5,6 +5,7 @@ const args = require("minimist")(process.argv.slice(2));
 const fs = require("fs");
 const { Client } = require("es7");
 const split = require("split2");
+const dateFormat = require("dateformat");
 
 async function run(confFile) {
   try {
@@ -41,8 +42,19 @@ async function run(confFile) {
           client.helpers.bulk({
             datasource: process.stdin.pipe(split()),
             onDocument(doc) {
+              let time =
+                "epoch_field" in config.elastic &&
+                config.elastic.epoch_field in doc
+                  ? new Date(doc[config.elastic.epoch_field])
+                  : new Date();
+              let index = config.elastic.index;
+              index +=
+                "index_patern" in config.elastic &&
+                typeof config.elastic.index_patern === "string"
+                  ? dateFormat(time, config.elastic.index_patern)
+                  : "";
               return {
-                index: { _index: config.elastic.index },
+                index: { _index: index },
               };
             },
             onDrop(doc) {

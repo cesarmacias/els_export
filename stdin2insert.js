@@ -42,10 +42,14 @@ async function run(confFile) {
           client.helpers.bulk({
             datasource: process.stdin.pipe(split()),
             onDocument(doc) {
+              let obj = {};
+              try {
+                obj = JSON.parse(doc);
+              } catch (e) {}
               let time =
                 "epoch_field" in config.elastic &&
-                config.elastic.epoch_field in doc
-                  ? new Date(doc[config.elastic.epoch_field])
+                config.elastic.epoch_field in obj
+                  ? new Date(obj[config.elastic.epoch_field])
                   : new Date();
               let index = config.elastic.index;
               index +=

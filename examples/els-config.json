@@ -1,0 +1,11 @@
+{
+  "elastic": {
+    "nodes": ["http://es02:9200", "http://es01:9200"],
+    "username": "els_escritura",
+    "password": "El5Wr1t3*19",
+    "index": "test_insert",
+    "pipeline": "test",
+    "bulkSize": 5000,
+    "conLimit": 100
+  }
+}

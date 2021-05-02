@@ -49,7 +49,7 @@ async function run(confFile) {
               let time =
                 "epoch_field" in config.elastic &&
                 config.elastic.epoch_field in obj
-                  ? new Date(obj[config.elastic.epoch_field])
+                  ? new Date(obj[config.elastic.epoch_field] * 1000) /* epoch_field in seconds */
                   : new Date();
               let index = config.elastic.index;
               index +=

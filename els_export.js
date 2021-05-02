@@ -30,7 +30,6 @@ function dotObject(obj, is, value) {
       currentObj[key] = currentObj[key] || {};
       currentObj = currentObj[key];
     }
-
     currentObj[keys[i]] = val;
     delete obj[str];
   }
@@ -72,7 +71,7 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
     while (flag) {
       const { body } = await esClient.search(search);
       let array = [];
-      if (config.query.type === "composite") {
+      if (config.query.type === "composite") { /* read response for bucket composite format */
         if (
           "aggregations" in body &&
           isObject(body.aggregations) &&
@@ -89,7 +88,7 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
         } else {
           flag = false;
         }
-      } else if (config.query.type === "search") {
+      } else if (config.query.type === "search") { /* read response for search format */
         if (
           "hits" in body &&
           "hits" in body.hits &&
@@ -106,13 +105,13 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
           flag = false;
         }
       }
-      for await (const item of array) {
+      for await (const item of array) { /* save results from buckets to fields to response */
         if (isObject(item)) {
           let resp = {};
           if ("_source" in item && "_index" && item) {
             resp = item["_source"];
           } else {
-            for (let key in item) {
+            for (let key in item) { 
               if (key === "key" && isObject(item.key)) {
                 for (let field in item.key) {
                   resp[field] = item.key[field];
@@ -167,7 +166,7 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
         }
       }
     }
-  } catch (e) {
+  } catch (e) { 
     if ("name" in e && "meta" in e) {
       console.error(e);
       console.error(JSON.stringify(e));

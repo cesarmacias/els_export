@@ -129,6 +129,15 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
 									resp[key] = item[key]["buckets"][0]["doc_count"];
 							} else if ("values" in item[key]) {
 								resp[key] = item[key].values;
+							} else if ("doc_count" in item[key] && Object.keys(item[key]).length > 1) {
+								resp[key] = {};
+								for (let k in item[key]) {
+									if(isObject(item[key][k]) && "value" in item[key][k]) {
+									  resp[key][k] = item[key][k].value;
+									} else {
+									  resp[key][k] = item[key][k];
+									}
+								}
 							} else if ("doc_count" in item[key]) {
 								resp[key] = item[key]["doc_count"];
 							} else {
@@ -145,7 +154,7 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
 					}
 					let data =
             config.export.attr && Object.keys(config.export.attr).length > 0 ?
-            	{ ...Object.expand(resp), ...config.export.attr } :
+            	{ ...Object.expand(resp), ...Object.expand(config.export.attr) } :
             	Object.expand(resp);
 					if (
 						"format" in config.export &&

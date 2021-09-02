@@ -4,6 +4,7 @@
 const { Client } = require("es7");
 const fs = require("fs");
 const argv = require("minimist")(process.argv.slice(2));
+const merge = require("deepmerge");
 /*
     FUNCTION GET VALUE FROM OBJECT USING DOT STRING FROMAT
 */
@@ -152,10 +153,11 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
 					) {
 						resp.time = timeFrom;
 					}
-					let data =
-            config.export.attr && Object.keys(config.export.attr).length > 0 ?
-            	{ ...Object.expand(resp), ...Object.expand(config.export.attr) } :
-            	Object.expand(resp);
+					let data = merge(Object.expand(resp),Object.expand(config.export.attr));
+					/*config.export.attr && Object.keys(config.export.attr).length > 0 ?
+            	{ ...Object.expand(resp), ...Object.expand(config.export.attr) }
+            	merge(Object.expand(resp),Object.expand(config.export.attr)) : 
+            	Object.expand(resp);*/
 					if (
 						"format" in config.export &&
             config.export.format == "csv" &&

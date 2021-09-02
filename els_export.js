@@ -204,6 +204,8 @@ async function main(confFile, opt_delay) {
 				const strDsl = fs.readFileSync(config.query.file, "utf8");
 				let delay, timeFrom;
 				let maxIte = 1;
+				let part = 0;
+				let delta = 24 * 60 * 60;
 				let TimeRange = {};
 				let timeTo = 0;
 				if ("time" in config.query && isObject(config.query.time)) {
@@ -217,7 +219,7 @@ async function main(confFile, opt_delay) {
               	dateFrom.getMonth(),
               	dateFrom.getDate()
               ).getTime() / 1000;
-						timeTo = timeFrom + 24 * 60 * 60;
+						timeTo = timeFrom + delta;
 					} else if (
 						"dateFrom" in config.query.time &&
             config.query.time.dateFrom.split("-").length == 3 &&
@@ -227,7 +229,12 @@ async function main(confFile, opt_delay) {
 						maxIte = config.query.time.toDays;
 						let arrDate = config.query.time.dateFrom.split("-");
 						timeFrom = new Date(+arrDate[0], +arrDate[1] - 1, +arrDate[2]).getTime() / 1000;
-						timeTo = timeFrom + 24 * 60 * 60;
+						if ("interval" in config.query.time && config.query.time.interval > 0) {
+							part = 24 * 60 / config.query.time.interval;
+							maxIte = maxIte * part;
+							delta = config.query.time.interval * 60;
+						}
+						timeTo = timeFrom + delta;
 					} else if ("interval" in config.query.time && config.query.time.interval > 0) {
 						delay = opt_delay && opt_delay > 0 ? opt_delay * 60 : 0;
 						delay =
@@ -250,7 +257,7 @@ async function main(confFile, opt_delay) {
             	TimeRange;
 					await DslQuery(config, replace, client, strDsl, timeFrom);
 					timeFrom = timeTo;
-					timeTo = timeFrom + 24 * 60 * 60;
+					timeTo = timeFrom + delta;
 					TimeRange = { _from: timeFrom, _to: timeTo };
 				}
 			} else {

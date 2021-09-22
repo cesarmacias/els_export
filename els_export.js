@@ -123,11 +123,19 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
 							} else if (key === config.query.exclude) {
 								continue;
 							} else if ("value" in item[key]) {
-								resp[key] =
-                  item[key].value != null ? item[key].value : undefined;
+								resp[key] = item[key].value != null ? item[key].value : undefined;
 							} else if ("buckets" in item[key]) {
-								if (item[key]["buckets"][0]["doc_count"])
+								if (item[key]["buckets"].length == 1) {
 									resp[key] = item[key]["buckets"][0]["doc_count"];
+								}
+								else if (item[key]["buckets"].length > 1) {
+									resp[key] = {};
+									for (let k in item[key]) {
+										if(isObject(item[key][k]) && "doc_count" in item[key][k]) {
+									  		resp[key][k] = item[key][k].doc_count;
+										}
+									}
+								}
 							} else if ("values" in item[key]) {
 								resp[key] = item[key].values;
 							} else if ("doc_count" in item[key] && Object.keys(item[key]).length > 1) {
@@ -154,10 +162,6 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
 						resp.time = timeFrom;
 					}
 					let data = merge(Object.expand(resp),Object.expand(config.export.attr));
-					/*config.export.attr && Object.keys(config.export.attr).length > 0 ?
-            	{ ...Object.expand(resp), ...Object.expand(config.export.attr) }
-            	merge(Object.expand(resp),Object.expand(config.export.attr)) : 
-            	Object.expand(resp);*/
 					if (
 						"format" in config.export &&
             config.export.format == "csv" &&

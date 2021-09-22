@@ -196,8 +196,13 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
 async function main(confFile, opt_delay) {
 	try {
 		if (fs.existsSync(confFile)) {
-			const strConf = fs.readFileSync(confFile, "utf8");
-			const config = JSON.parse(strConf);
+			let config;
+			try {
+				const strConf = fs.readFileSync(confFile, "utf8");
+				config = JSON.parse(strConf);
+			} catch (e) {
+				console.error(e);
+			}
 			const client = new Client({
 				nodes: config.elastic.nodes,
 				auth: {

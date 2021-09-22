@@ -125,14 +125,15 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
 							} else if ("value" in item[key]) {
 								resp[key] = item[key].value != null ? item[key].value : undefined;
 							} else if ("buckets" in item[key]) {
-								if (item[key]["buckets"].length == 1) {
-									resp[key] = item[key]["buckets"][0]["doc_count"];
+								let array = item[key]["buckets"];
+								if (array.length == 1) {
+									resp[key] = array[0]["doc_count"];
 								}
-								else if (item[key]["buckets"].length > 1) {
+								else if (array.length > 1) {
 									resp[key] = {};
-									for (let k in item[key]) {
-										if(isObject(item[key][k]) && "doc_count" in item[key][k]) {
-									  		resp[key][k] = item[key][k].doc_count;
+									for (let ob of array) {
+										if(isObject(ob) && "doc_count" in ob && "key" in ob) {
+									  		resp[key][ob.key] = ob.doc_count;
 										}
 									}
 								}

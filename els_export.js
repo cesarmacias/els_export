@@ -123,11 +123,20 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
 							} else if (key === config.query.exclude) {
 								continue;
 							} else if ("value" in item[key]) {
-								resp[key] =
-                  item[key].value != null ? item[key].value : undefined;
+								resp[key] = item[key].value != null ? item[key].value : undefined;
 							} else if ("buckets" in item[key]) {
-								if (item[key]["buckets"][0]["doc_count"])
-									resp[key] = item[key]["buckets"][0]["doc_count"];
+								let array = item[key]["buckets"];
+								if (array.length == 1) {
+									resp[key] = array[0]["doc_count"];
+								}
+								else if (array.length > 1) {
+									resp[key] = {};
+									for (let ob of array) {
+										if(isObject(ob) && "doc_count" in ob && "key" in ob) {
+									  		resp[key][ob.key] = ob.doc_count;
+										}
+									}
+								}
 							} else if ("values" in item[key]) {
 								resp[key] = item[key].values;
 							} else if ("doc_count" in item[key] && Object.keys(item[key]).length > 1) {
@@ -154,10 +163,6 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
 						resp.time = timeFrom;
 					}
 					let data = merge(Object.expand(resp),Object.expand(config.export.attr));
-					/*config.export.attr && Object.keys(config.export.attr).length > 0 ?
-            	{ ...Object.expand(resp), ...Object.expand(config.export.attr) }
-            	merge(Object.expand(resp),Object.expand(config.export.attr)) : 
-            	Object.expand(resp);*/
 					if (
 						"format" in config.export &&
             config.export.format == "csv" &&
@@ -191,8 +196,13 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
 async function main(confFile, opt_delay) {
 	try {
 		if (fs.existsSync(confFile)) {
-			const strConf = fs.readFileSync(confFile, "utf8");
-			const config = JSON.parse(strConf);
+			let config;
+			try {
+				const strConf = fs.readFileSync(confFile, "utf8");
+				config = JSON.parse(strConf);
+			} catch (e) {
+				console.error(e);
+			}
 			const client = new Client({
 				nodes: config.elastic.nodes,
 				auth: {

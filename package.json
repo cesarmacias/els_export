@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "dateformat": "^4.5.1",
+    "dateformat": "^4.6.2",
     "deepmerge": "^4.2.2",
     "es7": "npm:@elastic/elasticsearch@^7.13.0",
     "fs": "0.0.1-security",

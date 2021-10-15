@@ -162,7 +162,7 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
 					) {
 						resp.time = timeFrom;
 					}
-					let data = merge(Object.expand(resp),Object.expand(config.export.attr));
+					let data = merge(Object.expand(resp),Object.expand(config.export.attr) || {});
 					if (
 						"format" in config.export &&
             config.export.format == "csv" &&

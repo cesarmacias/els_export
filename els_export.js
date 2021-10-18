@@ -106,6 +106,8 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
 				} else {
 					flag = false;
 				}
+			} else {
+				break;
 			}
 			for await (const item of array) {
 				if (isObject(item)) {

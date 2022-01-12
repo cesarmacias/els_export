@@ -6,5 +6,10 @@
     "fs": "0.0.1-security",
     "minimist": "^1.2.5",
     "split2": "^3.2.2"
+  },
+  "name": "els_export",
+  "bin": {
+    "els_export": "els_export.js",
+    "els_insert": "stdin2insert.js"
   }
 }

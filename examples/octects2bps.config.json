@@ -27,6 +27,7 @@
   "export": {
     "addTime": true,
     "format": "ndjson",
+    "delimiter": "|",
     "schema": ["val1","val2","val3"],
     "attr": {
       "measurement_name": "snmpif_bps"

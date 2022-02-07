@@ -170,12 +170,13 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
             "schema" in config.export &&
             config.export.schema.length > 0
 					) {
+						let delimiter = config.export.delimiter || ",";
 						let csv;
 						config.export.schema.forEach((key, i) => {
 							csv =
                 i == 0 ?
                 	dotObject(data, key) :
-                	csv + "," + dotObject(data, key);
+                	csv + delimiter + dotObject(data, key);
 						});
 						console.log(csv);
 					} else {

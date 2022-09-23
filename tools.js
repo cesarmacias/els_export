@@ -83,7 +83,7 @@ async function ReadConfig(file) {
 	  }
 	  return config;
 	} else {
-	  throw new CustomError("ERORR_FILE","File not exists");
+	  throw new CustomError("ERROR_FILE","File not exists");
 	}
   }
 

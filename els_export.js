@@ -34,13 +34,13 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
       if (config.query.type === "composite") {
         if (
           "aggregations" in body &&
-          isObject(body.aggregations) &&
+          func.isObject(body.aggregations) &&
           config.query.aggs in body.aggregations
         ) {
           let obj = body.aggregations[config.query.aggs];
           array = "buckets" in obj ? obj.buckets : [];
           let after = "after_key" in obj ? obj.after_key : false;
-          if (isObject(after)) {
+          if (func.isObject(after)) {
             search.body["aggs"][config.query.aggs].composite.after = after;
           } else {
             flag = false;
@@ -66,13 +66,13 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
         }
       }
       for await (const item of array) {
-        if (isObject(item)) {
+        if (func.isObject(item)) {
           let resp = {};
           if ("_source" in item && "_index" && item) {
             resp = item["_source"];
           } else {
             for (let key in item) {
-              if (key === "key" && isObject(item.key)) {
+              if (key === "key" && func.isObject(item.key)) {
                 for (let field in item.key) {
                   resp[field] = item.key[field];
                 }
@@ -90,7 +90,7 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
                 } else if (array.length > 1) {
                   resp[key] = {};
                   for (let ob of array) {
-                    if (isObject(ob) && "doc_count" in ob && "key" in ob) {
+                    if (func.isObject(ob) && "doc_count" in ob && "key" in ob) {
                       resp[key][ob.key] = ob.doc_count;
                     }
                   }
@@ -103,7 +103,7 @@ async function DslQuery(config, objReplace, esClient, strDsl, timeFrom) {
               ) {
                 resp[key] = {};
                 for (let k in item[key]) {
-                  if (isObject(item[key][k]) && "value" in item[key][k]) {
+                  if (func.isObject(item[key][k]) && "value" in item[key][k]) {
                     resp[key][k] = item[key][k].value;
                   } else {
                     resp[key][k] = item[key][k];
@@ -178,7 +178,7 @@ async function main(confFile, opt_delay) {
       let delta = 24 * 60 * 60;
       let TimeRange = {};
       let timeTo = 0;
-      if ("time" in config.query && isObject(config.query.time)) {
+      if ("time" in config.query && func.isObject(config.query.time)) {
         if ("lastDay" in config.query.time && config.query.time.lastDay) {
           let dateFrom = ((d) => new Date(d.setDate(d.getDate() - 1)))(
             new Date()
@@ -230,7 +230,7 @@ async function main(confFile, opt_delay) {
       }
       for (let i = 0; i < maxIte; i++) {
         const replace =
-          "vars" in config.query && isObject(config.query.vars)
+          "vars" in config.query && func.isObject(config.query.vars)
             ? { ...config.query.vars, ...TimeRange }
             : TimeRange;
         await DslQuery(config, replace, client, strDsl, timeFrom);

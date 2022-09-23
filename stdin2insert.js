@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/*jslint node: true */
+/* eslint-disable no-mixed-spaces-and-tabs */
 "use strict";
 
 const args = require("minimist")(process.argv.slice(2));
@@ -7,6 +7,7 @@ const fs = require("fs");
 const { Client } = require("es7");
 const split = require("split2");
 const dateFormat = require("dateformat");
+const func = require("./tools.js");
 
 async function run(confFile) {
   try {
@@ -92,4 +93,6 @@ async function run(confFile) {
 */
 if ("config" in args) {
   run(args.config);
+} else {
+	console.error("Not ARG --config with config file path");
 }

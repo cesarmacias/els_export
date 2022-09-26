@@ -224,7 +224,10 @@ async function main(confFile, opt_delay) {
           timeTo = Math.round(Date.now() / 1000 - delay);
           timeFrom = Math.round(timeTo - config.query.time.interval * 60);
         } else {
-          throw new func.CustomError("ERROR_CONFIG", "Not correct config for timeRange");
+          throw new func.CustomError(
+            "ERROR_CONFIG",
+            "Not correct config for timeRange"
+          );
         }
         TimeRange = { _from: timeFrom, _to: timeTo };
       }
@@ -239,7 +242,10 @@ async function main(confFile, opt_delay) {
         TimeRange = { _from: timeFrom, _to: timeTo };
       }
     } else {
-		throw new func.CustomError("ERROR_CONFIG", "query DSL file not exists: " + config.query.file);
+      throw new func.CustomError(
+        "ERROR_CONFIG",
+        "query DSL file not exists: " + config.query.file
+      );
     }
   } catch (error) {
     console.error(error.name, error.message);

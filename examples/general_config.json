@@ -1,13 +1,14 @@
 {
+  "env": ["elastic.username", "elastic.password", "query.index"],
   "elastic": {
     "nodes": ["http://es02:9200", "http://es01:9200"],
-    "username": "elastic",
-    "password": "elastic",
+    "username": "ELK_USR",
+    "password": "ELK_PWD",
     "maxRetries": 3,
     "requestTimeout": 90000
   },
   "query": {
-    "index": "tseries-*",
+    "index": "ELK_RIDX",
     "vars": {
       "_from": 1000,
       "_to": 2000
@@ -26,7 +27,7 @@
   },
   "export": {
     "addTime": true,
-    "format": "ndjson",
+    "format": "csv",
     "delimiter": "|",
     "schema": ["val1","val2","val3"],
     "attr": {

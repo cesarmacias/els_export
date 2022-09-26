@@ -1,0 +1,127 @@
+{
+  "size": 0,
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "term": {
+            "measurement_name": "snmpif_ml"
+          }
+        },
+        {
+          "term": {
+            "tag.type": "ip-ran"
+          }
+        },
+        {
+          "terms": {
+            "tag.ifType": [6, 142]
+          }
+        },
+        {
+          "term": {
+            "tag.ifAdminStatus": 1
+          }
+        },
+        {
+          "range": {
+            "@timestamp": {
+              "gte": "%{_from}",
+              "lte": "%{_to}",
+              "format": "epoch_second"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "aggs": {
+    "group_by": {
+      "composite": {
+        "sources": [
+          {
+            "tag.hostname": {
+              "terms": {
+                "field": "tag.hostname"
+              }
+            }
+          },
+          {
+            "tag.host_IpAddr": {
+              "terms": {
+                "field": "tag.host_IpAddr"
+              }
+            }
+          },
+          {
+            "tag.ifName": {
+              "terms": {
+                "field": "tag.ifName"
+              }
+            }
+          }
+        ],
+        "size": 1000
+      },
+      "aggs": {
+        "time": {
+          "date_histogram": {
+            "field": "@timestamp",
+            "fixed_interval": "10m"
+          },
+          "aggs": {
+            "in_bytes": {
+              "max": {
+                "field": "field.ifHCInOctets"
+              }
+            },
+            "in_bps": {
+              "derivative": {
+                "buckets_path": "in_bytes"
+              }
+            },
+            "out_bytes": {
+              "max": {
+                "field": "field.ifHCOutOctets"
+              }
+            },
+            "out_bps": {
+              "derivative": {
+                "buckets_path": "out_bytes"
+              }
+            }
+          }
+        },
+        "in.stats": {
+          "extended_stats_bucket": {
+            "buckets_path": "time>in_bps"
+          }
+        },
+        "out.stats": {
+          "extended_stats_bucket": {
+            "buckets_path": "time>out_bps"
+          }
+        },
+        "in.cv": {
+          "bucket_script": {
+            "buckets_path": {
+              "dev": "in.stats.std_deviation",
+              "avg": "in.stats.avg"
+            },
+            "script": "params.dev/params.avg"
+          }
+        },
+        "out.cv": {
+          "bucket_script": {
+            "buckets_path": {
+              "dev": "out.stats.std_deviation",
+              "avg": "out.stats.avg"
+            },
+            "script": "params.dev/params.avg"
+          }
+        }
+      }
+    }
+  }
+}
+

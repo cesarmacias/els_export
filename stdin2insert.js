@@ -5,8 +5,8 @@
 const args = require("minimist")(process.argv.slice(2));
 const { Client } = require("es7");
 const split = require("split2");
-const dateFormat = require("dateformat");
 const func = require("./tools.js");
+import dateFormat, { masks } from "dateformat";
 
 async function run(confFile) {
   try {

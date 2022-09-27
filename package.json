@@ -2,10 +2,10 @@
   "dependencies": {
     "dateformat": "^4.6.2",
     "deepmerge": "^4.2.2",
-    "es7": "npm:@elastic/elasticsearch@^7.13.0",
+    "es7": "npm:@elastic/elasticsearch@~7.17.0",
     "fs": "0.0.1-security",
-    "minimist": "^1.2.5",
-    "split2": "^3.2.2"
+    "minimist": "^1.2.6",
+    "split2": "^4.1.0"
   },
   "name": "els_export",
   "bin": {

@@ -30,3 +30,16 @@ Insert data from stdin in NDJSON format to Elasticsearch index
 ## Configuration
 
 - "env", an array with fields name (dot parsing) in config file to be replaced with environment variables with the name of the value field
+
+## Recomendations
+
+- If use els_export for aggs data to insert into diferent index for history purposes, and use aggs `extended_stats` some docs can has the error `mapper_parsing_exception`, because the stats generate "NaN" or "Null" values. To resolve this problem has to modify `index_template` with `ignore_malformed`.
+
+```
+PUT my-index-000001
+{
+  "settings": {
+    "index.mapping.ignore_malformed": true 
+  }
+}  
+```
